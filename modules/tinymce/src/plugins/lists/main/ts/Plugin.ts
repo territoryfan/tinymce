@@ -10,13 +10,17 @@ import Api from './api/Api';
 import Commands from './api/Commands';
 import Keyboard from './core/Keyboard';
 import Buttons from './ui/Buttons';
+import { hasRtcPlugin } from './core/DetectRtc';
 
-export default function () {
-  PluginManager.add('lists', function (editor) {
-    Keyboard.setup(editor);
+export default () => {
+  PluginManager.add('lists', (editor) => {
+    if (hasRtcPlugin(editor) === false) {
+      Keyboard.setup(editor);
+      Commands.register(editor);
+    }
+
     Buttons.register(editor);
-    Commands.register(editor);
 
     return Api.get(editor);
   });
-}
+};

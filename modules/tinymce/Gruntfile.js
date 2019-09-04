@@ -276,7 +276,11 @@ module.exports = function (grunt) {
           {
             src: '../../README.md',
             dest: 'js/tinymce/readme.md'
-          }
+          },
+          {
+            src: 'package.json',
+            dest: 'js/tinymce/package.json'
+          },
         ]
       },
       'ui-skins': {

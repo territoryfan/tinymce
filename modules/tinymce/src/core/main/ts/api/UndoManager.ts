@@ -12,6 +12,7 @@ import { addUndoLevel, beforeChange, clear, extra, hasRedo, hasUndo, ignore, red
 import { addKeyboardShortcuts, registerEvents } from '../undo/Setup';
 import { UndoManager, Locks, Index, UndoLevel } from '../undo/UndoManagerTypes';
 import Editor from './Editor';
+import * as Rtc from '../Rtc';
 
 /**
  * This class handles the undo/redo history levels for the editor. Since the built-in undo/redo has major drawbacks a custom one was needed.
@@ -42,7 +43,7 @@ const UndoManager = function (editor: Editor): UndoManager {
      * @method beforeChange
      */
     beforeChange () {
-      beforeChange(editor, locks, beforeBookmark);
+      Rtc.ignore(editor, () => beforeChange(editor, locks, beforeBookmark));
     },
 
     /**
@@ -54,7 +55,7 @@ const UndoManager = function (editor: Editor): UndoManager {
      * @return {Object} Undo level that got added or null it a level wasn't needed.
      */
     add (level?: UndoLevel, event?: Event): UndoLevel {
-      return addUndoLevel(editor, undoManager, index, locks, beforeBookmark, level, event);
+      return Rtc.block(editor, () => addUndoLevel(editor, undoManager, index, locks, beforeBookmark, level, event));
     },
 
     /**
@@ -64,7 +65,7 @@ const UndoManager = function (editor: Editor): UndoManager {
      * @return {Object} Undo level or null if no undo was performed.
      */
     undo (): UndoLevel {
-      return undo(editor, undoManager, locks, index);
+      return Rtc.undo(editor, () => undo(editor, undoManager, locks, index));
     },
 
     /**
@@ -74,7 +75,7 @@ const UndoManager = function (editor: Editor): UndoManager {
      * @return {Object} Redo level or null if no redo was performed.
      */
     redo (): UndoLevel {
-      return redo(editor, index, undoManager.data);
+      return Rtc.redo(editor, () => redo(editor, index, undoManager.data));
     },
 
     /**
@@ -83,7 +84,7 @@ const UndoManager = function (editor: Editor): UndoManager {
      * @method clear
      */
     clear () {
-      clear(editor, undoManager, index);
+      Rtc.block(editor, () => clear(editor, undoManager, index));
     },
 
     /**
@@ -92,7 +93,7 @@ const UndoManager = function (editor: Editor): UndoManager {
      * @method reset
      */
     reset () {
-      reset(undoManager);
+      Rtc.block(editor, () => reset(undoManager));
     },
 
     /**
@@ -102,7 +103,7 @@ const UndoManager = function (editor: Editor): UndoManager {
      * @return {Boolean} true/false if the undo manager has any undo levels.
      */
     hasUndo () {
-      return hasUndo(editor, undoManager, index);
+      return Rtc.hasUndo(editor, () => hasUndo(editor, undoManager, index));
     },
 
     /**
@@ -112,7 +113,7 @@ const UndoManager = function (editor: Editor): UndoManager {
      * @return {Boolean} true/false if the undo manager has any redo levels.
      */
     hasRedo () {
-      return hasRedo(undoManager, index);
+      return Rtc.hasRedo(editor, () => hasRedo(undoManager, index));
     },
 
     /**
@@ -126,7 +127,7 @@ const UndoManager = function (editor: Editor): UndoManager {
      * @return {Object} Undo level that got added or null it a level wasn't needed.
      */
     transact (callback: () => void): UndoLevel {
-      return transact(undoManager, locks, callback);
+      return Rtc.transact(editor, callback, () => transact(undoManager, locks, callback));
     },
 
     /**
@@ -138,7 +139,7 @@ const UndoManager = function (editor: Editor): UndoManager {
      * @param {function} callback Function that gets executed and has dom manipulation logic in it.
      */
     ignore (callback: () => void) {
-      ignore(locks, callback);
+      Rtc.block(editor, () => ignore(locks, callback));
     },
 
     /**
@@ -151,11 +152,12 @@ const UndoManager = function (editor: Editor): UndoManager {
      * @param {function} callback2 Function that does mutation but gets displayed to the user.
      */
     extra (callback1: () => void, callback2: () => void) {
-      extra(editor, undoManager, index, callback1, callback2);
+      Rtc.block(editor, () => extra(editor, undoManager, index, callback1, callback2));
     }
   };
 
-  registerEvents(editor, undoManager, locks);
+  Rtc.ignore(editor, () => registerEvents(editor, undoManager, locks));
+
   addKeyboardShortcuts(editor);
 
   return undoManager;

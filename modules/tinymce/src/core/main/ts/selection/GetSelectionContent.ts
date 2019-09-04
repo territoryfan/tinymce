@@ -12,6 +12,7 @@ import FragmentReader from './FragmentReader';
 import MultiRange from './MultiRange';
 import Zwsp from '../text/Zwsp';
 import Editor from '../api/Editor';
+import * as Rtc from '../Rtc';
 
 const getTextContent = (editor: Editor): string => {
   return Option.from(editor.selection.getRng()).map((rng) => {
@@ -41,30 +42,34 @@ const getHtmlContent = (editor: Editor, args: any): string => {
 };
 
 const getContent = (editor: Editor, args: any = {}): string => {
-  args.get = true;
-  args.format = args.format || 'html';
-  args.selection = true;
+  const format = args.format ? args.format : 'html';
 
-  args = editor.fire('BeforeGetContent', args);
-  if (args.isDefaultPrevented()) {
-    editor.fire('GetContent', args);
-    return args.content;
-  }
+  return Rtc.getSelectedContent(editor, format, () => {
+    args.get = true;
+    args.format = format;
+    args.selection = true;
 
-  if (args.format === 'text') {
-    return getTextContent(editor);
-  } else {
-    args.getInner = true;
-    const content = getHtmlContent(editor, args);
-
-    if (args.format === 'tree') {
-      return content;
-    } else {
-      args.content = editor.selection.isCollapsed() ? '' : content;
+    args = editor.fire('BeforeGetContent', args);
+    if (args.isDefaultPrevented()) {
       editor.fire('GetContent', args);
       return args.content;
     }
-  }
+
+    if (args.format === 'text') {
+      return getTextContent(editor);
+    } else {
+      args.getInner = true;
+      const content = getHtmlContent(editor, args);
+
+      if (args.format === 'tree') {
+        return content;
+      } else {
+        args.content = editor.selection.isCollapsed() ? '' : content;
+        editor.fire('GetContent', args);
+        return args.content;
+      }
+    }
+  });
 };
 
 export default {

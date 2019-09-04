@@ -30,7 +30,8 @@
     "phantomjs-test": "yarn -s grunt phantomjs-auto",
     "phantomjs-test-manual": "yarn -s grunt phantomjs-manual",
     "bedrock": "bedrock --customRoutes modules/tinymce/src/core/test/json/routes.json",
-    "test-one": "yarn tsc && yarn bedrock-auto -b chrome-headless -f"
+    "test-one": "yarn tsc && yarn bedrock-auto -b chrome-headless -f",
+    "publish-rtc": "cd modules/tinymce/js/tinymce && npm publish"
   },
   "devDependencies": {
     "@ephox/bedrock-client": "^9.3.2",

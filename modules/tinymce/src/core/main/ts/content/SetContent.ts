@@ -18,6 +18,7 @@ import EditorFocus from '../focus/EditorFocus';
 import CaretFinder from '../caret/CaretFinder';
 import NodeType from '../dom/NodeType';
 import { isWsPreserveElement } from '../dom/ElementType';
+import * as Rtc from '../Rtc';
 
 const defaultFormat = 'html';
 
@@ -113,17 +114,19 @@ const setContentTree = (editor: Editor, body: HTMLElement, content: Node, args: 
 };
 
 export const setContent = (editor: Editor, content: Content, args: SetContentArgs = {}): Content => {
-  args.format = args.format ? args.format : defaultFormat;
-  args.set = true;
-  args.content = isTreeNode(content) ? '' : content;
+  return Rtc.setContent(editor, content, () => {
+    args.format = args.format ? args.format : defaultFormat;
+    args.set = true;
+    args.content = isTreeNode(content) ? '' : content;
 
-  if (!isTreeNode(content) && !args.no_events) {
-    editor.fire('BeforeSetContent', args);
-    content = args.content;
-  }
+    if (!isTreeNode(content) && !args.no_events) {
+      editor.fire('BeforeSetContent', args);
+      content = args.content;
+    }
 
-  return Option.from(editor.getBody()).fold(
-    Fun.constant(content),
-    (body) => isTreeNode(content) ? setContentTree(editor, body, content, args) : setContentString(editor, body, content, args)
-  );
+    return Option.from(editor.getBody()).fold(
+      Fun.constant(content),
+      (body) => isTreeNode(content) ? setContentTree(editor, body, content, args) : setContentString(editor, body, content, args)
+    );
+  });
 };

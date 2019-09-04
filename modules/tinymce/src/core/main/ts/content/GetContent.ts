@@ -15,13 +15,15 @@ import TrimHtml from '../dom/TrimHtml';
 import Zwsp from '../text/Zwsp';
 import Settings from '../api/Settings';
 import { isWsPreserveElement } from '../dom/ElementType';
+import * as Rtc from '../Rtc';
 
 const defaultFormat = 'html';
 
 type Content = string | Node;
+export type ContentFormat = 'raw' | 'text' | 'html' | 'tree';
 
 export interface GetContentArgs {
-  format?: 'raw' | 'text' | 'html' | 'tree';
+  format?: ContentFormat;
   get?: boolean;
   content?: string;
   getInner?: boolean;
@@ -35,10 +37,10 @@ const trimEmptyContents = (editor: Editor, html: string): string => {
   return html.replace(emptyRegExp, '');
 };
 
-const getContentFromBody = (editor: Editor, args: GetContentArgs, body: HTMLElement): Content => {
+const getContentFromBody = (editor: Editor, args: GetContentArgs, format: ContentFormat, body: HTMLElement): Content => {
   let content;
 
-  args.format = args.format ? args.format : defaultFormat;
+  args.format = format;
   args.get = true;
   args.getInner = true;
 
@@ -70,9 +72,13 @@ const getContentFromBody = (editor: Editor, args: GetContentArgs, body: HTMLElem
 };
 
 export const getContent = (editor: Editor, args: GetContentArgs = {}): Content => {
-  return Option.from(editor.getBody())
-    .fold(
-      Fun.constant(args.format === 'tree' ? new Node('body', 11) : ''),
-      (body) => getContentFromBody(editor, args, body)
-    );
+  const format = args.format ? args.format : defaultFormat;
+
+  return Rtc.getContent(editor, format, () => {
+    return Option.from(editor.getBody())
+      .fold(
+        Fun.constant(args.format === 'tree' ? new Node('body', 11) : ''),
+        (body) => getContentFromBody(editor, args, format, body)
+      );
+  });
 };

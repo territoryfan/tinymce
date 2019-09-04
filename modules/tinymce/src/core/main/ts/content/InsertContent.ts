@@ -23,6 +23,7 @@ import Editor from '../api/Editor';
 import DOMUtils from '../api/dom/DOMUtils';
 import { trimOrPadLeftRight, trimNbspAfterDeleteAndPadValue, isAfterNbsp } from './NbspTrim';
 import ParserNode from '../api/html/Node';
+import * as Rtc from '../Rtc';
 
 const isTableCell = NodeType.matchNodeNames(['td', 'th']);
 
@@ -359,7 +360,10 @@ const processValue = function (value) {
 
 const insertAtCaret = function (editor: Editor, value) {
   const result = processValue(value);
-  insertHtmlAtCaret(editor, result.content, result.details);
+
+  Rtc.insertContent(editor, result.content, () => {
+    insertHtmlAtCaret(editor, result.content, result.details);
+  });
 };
 
 export default {

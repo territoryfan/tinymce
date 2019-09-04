@@ -1,7 +1,6 @@
 {
-  "name": "tinymce",
-  "version": "5.1.6",
-  "private": true,
+  "name": "@rtc/tinymce",
+  "version": "5.2.0-rtc-build.14",
   "repository": {
     "type": "git",
     "url": "https://github.com/tinymce/tinymce"
@@ -27,5 +26,8 @@
   },
   "devDependencies": {
     "@ephox/katamari-assertions": "^1.0.0"
+  },
+  "publishConfig": {
+    "registry": "http://nexus:8081/repository/ephox-npm/"
   }
 }

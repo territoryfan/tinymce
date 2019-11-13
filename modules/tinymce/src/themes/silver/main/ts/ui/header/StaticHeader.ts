@@ -9,10 +9,12 @@ import { Fun } from '@ephox/katamari';
 
 const setup = Fun.noop;
 const isDocked = Fun.never;
+const isDockedBottom = Fun.never;
 const getBehaviours = Fun.constant([]);
 
 export {
   setup,
   isDocked,
+  isDockedBottom,
   getBehaviours
 };

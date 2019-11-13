@@ -7,7 +7,7 @@ import { SugarPosition } from '../../alien/TypeDefinitions';
 import { AlloyComponent } from '../../api/component/ComponentApi';
 import * as DragCoord from '../../api/data/DragCoord';
 import * as Dockables from './Dockables';
-import { DockingConfig, DockingState } from './DockingTypes';
+import { DockingConfig, DockingMode, DockingState } from './DockingTypes';
 
 const morphToStatic = (component: AlloyComponent, config: DockingConfig): void => {
   Arr.each([ 'left', 'top', 'position' ], (prop) => Css.remove(component.element(), prop));
@@ -61,7 +61,7 @@ const refreshInternal = (component: AlloyComponent, config: DockingConfig, state
     updateVisibility(component, config, state, viewport);
   }
 
-  Dockables.getMorph(component, config, viewport, scroll, lazyOrigin).each((morph) => {
+  Dockables.getMorph(component, config, state, viewport, scroll, lazyOrigin).each((morph) => {
     // Toggle the docked state
     state.setDocked(!isDocked);
     // Apply the morph result
@@ -124,4 +124,12 @@ const isDocked = (component: AlloyComponent, config: DockingConfig, state: Docki
   return state.isDocked();
 };
 
-export { refresh, reset, isDocked };
+const setModes = (component: AlloyComponent, config: DockingConfig, state: DockingState, modes: DockingMode[]) => {
+  state.setModes(modes);
+};
+
+const getModes = (component: AlloyComponent, config: DockingConfig, state: DockingState) => {
+  return state.getModes();
+};
+
+export { refresh, reset, isDocked, getModes, setModes };

@@ -103,10 +103,7 @@ const setup = (editor: Editor): RenderInfo => {
   const lazyHeader = () => lazyOuterContainer.bind(OuterContainer.getHeader);
 
   const isHeaderDocked = () => header.isDocked(lazyHeader);
-
-  const isHeaderDockedBottom = () => {
-    return isHeaderDocked() && !isToolbarTop;
-  };
+  const isHeaderDockedBottom = () => header.isDockedBottom(lazyHeader);
 
   const sink = GuiFactory.build({
     dom: {

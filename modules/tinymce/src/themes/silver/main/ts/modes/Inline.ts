@@ -6,12 +6,13 @@
  */
 
 import { AlloyComponent, Attachment, Boxes, Docking, SplitFloatingToolbar } from '@ephox/alloy';
-import { Cell, Option } from '@ephox/katamari';
-import { Body, Css, Element, Height, Width } from '@ephox/sugar';
+import { window } from '@ephox/dom-globals';
+import { Arr, Cell, Option } from '@ephox/katamari';
+import { Body, Css, Element, Height, Scroll, Width } from '@ephox/sugar';
 import DOMUtils from 'tinymce/core/api/dom/DOMUtils';
 import Editor from 'tinymce/core/api/Editor';
 import Delay from 'tinymce/core/api/util/Delay';
-import { getMaxWidthSetting, getToolbarDrawer, getUiContainer, isStickyToolbar, isToolbarLocationTop, ToolbarDrawer, useFixedContainer } from '../api/Settings';
+import { getMaxWidthSetting, getToolbarDrawer, getUiContainer, isStickyToolbar, ToolbarDrawer, useFixedContainer } from '../api/Settings';
 import { UiFactoryBackstage } from '../backstage/Backstage';
 import { setupReadonlyModeSwitch } from '../ReadOnly';
 import { ModeRenderInfo, RenderArgs, RenderUiComponents, RenderUiConfig } from '../Render';
@@ -35,9 +36,28 @@ const render = (editor: Editor, uiComponents: RenderUiComponents, rawUiConfig: R
   const splitSetting = getToolbarDrawer(editor);
   const isSplitFloatingToolbar = splitSetting === ToolbarDrawer.floating;
   const isSplitToolbar = splitSetting === ToolbarDrawer.sliding || isSplitFloatingToolbar;
-  const isToolbarTop = isToolbarLocationTop(editor);
 
   loadInlineSkin(editor);
+
+  const calcToolbarPosition = (offset: number) => {
+    const isToolbarTop = Arr.contains(Docking.getModes(floatContainer), 'top');
+    const targetBounds = Boxes.box(targetElm);
+    const left = targetBounds.x();
+
+    if (isToolbarTop) {
+      const toolbarHeight = Height.get(floatContainer.element()) - offset;
+      const windowBottomPos = Scroll.get().top() + window.innerHeight;
+
+      // If there isn't room to add the toolbar above the target element, then place the toolbar at the bottom
+      if (toolbarHeight > targetBounds.y() && targetBounds.bottom() + toolbarHeight < windowBottomPos) {
+        return { top: targetBounds.bottom(), left };
+      } else {
+        return { top: targetBounds.y() - toolbarHeight, left };
+      }
+    } else {
+      return { top: targetBounds.bottom(), left };
+    }
+  };
 
   const updateChromePosition = (toolbar: Option<AlloyComponent>) => {
     // Calculate the toolbar offset when using a split toolbar drawer
@@ -48,22 +68,18 @@ const render = (editor: Editor, uiComponents: RenderUiComponents, rawUiConfig: R
 
     // The float container/editor may not have been rendered yet, which will cause it to have a non integer based positions
     // so we need to round this to account for that.
-    const targetBounds = Boxes.box(targetElm);
-    const top = isToolbarTop ?
-      targetBounds.y() - Height.get(floatContainer.element()) + offset :
-      targetBounds.bottom();
-
+    const { top, left } = calcToolbarPosition(offset);
     Css.setAll(uiComponents.outerContainer.element(), {
       position: 'absolute',
       top: Math.round(top) + 'px',
-      left: Math.round(targetBounds.x()) + 'px'
+      left: Math.round(left) + 'px'
     });
 
     // Update the max width of the inline toolbar
     const maxWidth = editorMaxWidthOpt.getOrThunk(() => {
       // No max width, so use the body width, minus the left pos as the maximum
       const bodyMargin = Utils.parseToInt(Css.get(Body.body(), 'margin-left')).getOr(0);
-      return Width.get(Body.body()) - targetBounds.x() + bodyMargin;
+      return Width.get(Body.body()) - left + bodyMargin;
     });
     Css.set(floatContainer.element(), 'max-width', maxWidth + 'px');
   };

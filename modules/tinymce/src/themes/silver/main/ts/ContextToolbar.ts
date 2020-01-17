@@ -60,8 +60,8 @@ const getAnchorLayout = (position: Toolbar.ContextToolbarPosition, isTouch: bool
     return {
       bubble: Bubble.nu(bubbleSize, 0, bubbleAlignments),
       layouts: {
-        onLtr: () => [ Layout.east ],
-        onRtl: () => [ Layout.west ]
+        onLtr: () => [ Layout.east, Layout.northeast, Layout.southeast ],
+        onRtl: () => [ Layout.west, Layout.northwest, Layout.southwest ]
       },
       overrides: anchorOverrides
     };

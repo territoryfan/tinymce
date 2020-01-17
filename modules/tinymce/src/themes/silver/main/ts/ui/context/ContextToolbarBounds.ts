@@ -45,7 +45,7 @@ const getVerticalBounds = (editor: Editor, contentAreaBox: Bounds, viewportBound
 
   const containerBounds = Boxes.box(container);
 
-  // Scenario toolbar bottom & Iframe: Bottom of the header -> Bottom of the editor container
+  // Scenario toolbar top & Iframe: Bottom of the header -> Bottom of the editor container
   if (isToolbarAbove) {
     return {
       y: Math.max(headerBox.bottom(), viewportBounds.y()),

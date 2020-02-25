@@ -347,10 +347,7 @@ const initContentBody = function (editor: Editor, skipWrite?: boolean) {
 
   Events.firePreInit(editor);
 
-  Rtc.setup(editor, (rtcMode) => {
-    // TODO: Lock the editor until this is executed
-    preInit(editor, rtcMode);
-  });
+  Rtc.setup(editor).then((rtcMode) => preInit(editor, rtcMode));
 };
 
 export default {
